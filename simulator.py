@@ -19,6 +19,7 @@ Revision 2:
     Thanks Lee Wei Ping for trying and pointing out the difficulty & ambiguity with future_prediction SRTF.
 '''
 import sys
+from collections import deque
 
 input_file = 'input.txt'
 
@@ -28,6 +29,10 @@ class Process:
         self.id = id
         self.arrive_time = arrive_time
         self.burst_time = burst_time
+        
+        # add remaining time 
+        self.remaining_time = burst_time
+        
     #for printing purpose
     def __repr__(self):
         return ('[id %d : arrive_time %d,  burst_time %d]'%(self.id, self.arrive_time, self.burst_time))
@@ -50,8 +55,46 @@ def FCFS_scheduling(process_list):
 #Output_1 : Schedule list contains pairs of (time_stamp, proccess_id) indicating the time switching to that proccess_id
 #Output_2 : Average Waiting Time
 def RR_scheduling(process_list, time_quantum ):
-    return (["to be completed, scheduling process_list on round robin policy with time_quantum"], 0.0)
-
+    schedule = [] 
+    current_time = 0
+    waiting_time = 0
+    ready = deque()
+    remaining_procs = len(process_list)
+    i = 0
+    
+    while remaining_procs != 0: 
+        # update ready queue (look ahead to all processes arriving within next time quantum)
+        while i < len(process_list) and process_list[i].arrive_time <= current_time + time_quantum: 
+            ready.append(process_list[i])
+            i += 1
+        
+        if len(ready) != 0:
+            # run next process
+            process = ready.popleft()
+            
+            # handle case where process is erroneously queued before true arrival time
+            if process.arrive_time > current_time: 
+                current_time = process.arrive_time 
+            
+            schedule.append((current_time,process.id))
+            run_time = process.remaining_time if process.remaining_time <= time_quantum else time_quantum
+            current_time += run_time
+            process.remaining_time -= run_time
+            
+            # check if process has finished
+            if process.remaining_time == 0: 
+                remaining_procs -= 1
+                waiting_time += current_time - process.arrive_time - process.burst_time
+            else: 
+                ready.append(process)
+        else: 
+            # fastforward to next process
+            current_time = process_list[i].arrive_time
+        
+        
+    return schedule, waiting_time/float(len(process_list))
+    
+    
 def SRTF_scheduling(process_list):
     return (["to be completed, scheduling process_list on SRTF, using process.burst_time to calculate the remaining time of the current process "], 0.0)
 
