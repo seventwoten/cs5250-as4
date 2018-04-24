@@ -20,6 +20,7 @@ Revision 2:
 '''
 import sys
 from collections import deque
+from Queue import PriorityQueue
 
 input_file = 'input.txt'
 
@@ -65,6 +66,7 @@ def RR_scheduling(process_list, time_quantum ):
     while remaining_procs != 0: 
         # update ready queue (look ahead to all processes arriving within next time quantum)
         while i < len(process_list) and process_list[i].arrive_time <= current_time + time_quantum: 
+            process_list[i].remaining_time = process_list[i].burst_time
             ready.append(process_list[i])
             i += 1
         
@@ -86,6 +88,7 @@ def RR_scheduling(process_list, time_quantum ):
                 remaining_procs -= 1
                 waiting_time += current_time - process.arrive_time - process.burst_time
             else: 
+                # append the process at the back of the ready queue
                 ready.append(process)
         else: 
             # fastforward to next process
@@ -96,7 +99,48 @@ def RR_scheduling(process_list, time_quantum ):
     
     
 def SRTF_scheduling(process_list):
-    return (["to be completed, scheduling process_list on SRTF, using process.burst_time to calculate the remaining time of the current process "], 0.0)
+    schedule = [] 
+    current_time = 0
+    waiting_time = 0
+    sorted_ready = PriorityQueue()
+    remaining_procs = len(process_list)
+    i = 0
+    process = process_list[i]
+    
+    while remaining_procs != 0: 
+        # update sorted ready queue 
+        if i < len(process_list) and process_list[i].arrive_time == current_time: 
+            process_list[i].remaining_time = process_list[i].burst_time
+            sorted_ready.put((process_list[i].remaining_time, process_list[i]))
+            i += 1
+            
+        if not sorted_ready.empty(): 
+            # run next process
+            process = sorted_ready.get()[1]
+            
+            # run process until next process arrives, or until it finishes, whichever is earlier
+            time_to_next_arrival = process_list[i].arrive_time - current_time if i < len(process_list) else float("inf")
+            
+            schedule.append((current_time,process.id))
+            run_time = process.remaining_time if process.remaining_time < time_to_next_arrival else time_to_next_arrival
+            current_time += run_time
+            process.remaining_time -= run_time
+            
+            # check if process has finished
+            if process.remaining_time == 0: 
+                remaining_procs -= 1
+                waiting_time += current_time - process.arrive_time - process.burst_time
+            else: 
+                # add the process to the sorted ready queue 
+                sorted_ready.put((process.remaining_time, process))
+   
+        else: 
+            # fastforward to next process
+            current_time = process_list[i].arrive_time
+        
+            
+    return schedule, waiting_time/float(len(process_list))
+    
 
 def SJF_scheduling(process_list, alpha):
     return (["to be completed, scheduling SJF without using information from process.burst_time"],0.0)
