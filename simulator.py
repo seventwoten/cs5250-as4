@@ -143,8 +143,59 @@ def SRTF_scheduling(process_list):
     
 
 def SJF_scheduling(process_list, alpha):
-    return (["to be completed, scheduling SJF without using information from process.burst_time"],0.0)
+    schedule = [] 
+    current_time = 0
+    waiting_time = 0
+    ready = {}               # ready is a dictionary of pids : deques of process objects
+    predicted_burst = {}     # predicted_burst is a dictionary of pids : predicted_burst values
+    i = 0
+    remaining_procs = len(process_list)
 
+    while remaining_procs != 0: 
+    
+        # update ready queues with new processes arriving before current_time
+        while i < len(process_list) and process_list[i].arrive_time <= current_time: 
+            process_list[i].remaining_time = process_list[i].burst_time
+            
+            if process_list[i].id not in predicted_burst: # initialise predicted bursts for new pids
+                predicted_burst[process_list[i].id] = 5 
+                
+            if process_list[i].id not in ready:           # add process to its ready queue
+                ready[process_list[i].id] = deque([process_list[i]])
+            else: 
+                ready[process_list[i].id].append(process_list[i])
+                
+            i += 1
+        
+        # check if there are ready processes
+        ready_size = 0
+        for key, q in ready.items():
+            ready_size += len(q)
+            
+        if ready_size != 0: 
+            
+            # find next ready process with shortest predicted burst
+            sorted_ids = sorted(predicted_burst, key=predicted_burst.get)
+            for id in sorted_ids: 
+                if len(ready[id]) != 0:
+                    process = ready[id].popleft()
+                    break
+            
+            # run next process
+            schedule.append((current_time,process.id))
+            current_time += process.remaining_time
+            process.remaining_time = 0
+            remaining_procs -= 1
+            waiting_time += current_time - process.arrive_time - process.burst_time
+            
+            # update estimate of predicted_burst
+            predicted_burst[process.id] = 0.5 * predicted_burst[process.id] + 0.5 * process.burst_time
+            
+        else: 
+            # fastforward to next process
+            current_time = process_list[i].arrive_time
+            
+    return schedule, waiting_time/float(len(process_list))
 
 def read_input():
     result = []
