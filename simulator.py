@@ -232,5 +232,21 @@ def main(argv):
     SJF_schedule, SJF_avg_waiting_time =  SJF_scheduling(process_list, alpha = 0.5)
     write_output('SJF.txt', SJF_schedule, SJF_avg_waiting_time )
 
+    # Test different values of Q for RR 
+    print ("simulating RR with varying Q (start = 1, stop_inclusive = 10, step = 1) ----")
+    RR_wt_list = []
+    for q in range(1, 11):
+        RR_schedule, RR_avg_waiting_time = RR_scheduling(process_list,time_quantum = q)
+        RR_wt_list.append((q, RR_avg_waiting_time))
+    write_output('RR_test.txt', RR_wt_list, min(RR_wt_list, key = lambda t: t[1])[1] )
+    
+    # Test different values of alpha for SJF 
+    print ("simulating SJF with varying alpha (start = 0, stop_inclusive = 1, step = 0.1) ----")
+    SJF_wt_list = []
+    for a in [round(x * 0.1, 1) for x in range(0, 11)]:
+        SJF_schedule, SJF_avg_waiting_time =  SJF_scheduling(process_list, alpha = a)
+        SJF_wt_list.append((a, SJF_avg_waiting_time))
+    write_output('SJF_test.txt', SJF_wt_list, min(SJF_wt_list, key = lambda t: t[1])[1] )
+    
 if __name__ == '__main__':
     main(sys.argv[1:])
