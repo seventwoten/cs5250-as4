@@ -38,6 +38,16 @@ class Process:
     def __repr__(self):
         return ('[id %d : arrive_time %d,  burst_time %d]'%(self.id, self.arrive_time, self.burst_time))
 
+        
+# remove timestamps from schedule if switching to same process
+def remove_consecutive(schedule):
+    t = 0
+    while t < len(schedule)-1: 
+        if schedule[t][1] == schedule[t+1][1]:
+            schedule.pop(t+1)
+        else: 
+            t += 1        
+        
 def FCFS_scheduling(process_list):
     #store the (switching time, proccess_id) pair
     schedule = []
@@ -50,6 +60,8 @@ def FCFS_scheduling(process_list):
         waiting_time = waiting_time + (current_time - process.arrive_time)
         current_time = current_time + process.burst_time
     average_waiting_time = waiting_time/float(len(process_list))
+    
+    remove_consecutive(schedule)
     return schedule, average_waiting_time
 
 #Input: process_list, time_quantum (Positive Integer)
@@ -93,8 +105,8 @@ def RR_scheduling(process_list, time_quantum ):
         else: 
             # fastforward to next process
             current_time = process_list[i].arrive_time
-        
-        
+    
+    remove_consecutive(schedule)
     return schedule, waiting_time/float(len(process_list))
     
     
@@ -138,7 +150,7 @@ def SRTF_scheduling(process_list):
             # fastforward to next process
             current_time = process_list[i].arrive_time
         
-            
+    remove_consecutive(schedule)
     return schedule, waiting_time/float(len(process_list))
     
 
@@ -194,7 +206,8 @@ def SJF_scheduling(process_list, alpha):
         else: 
             # fastforward to next process
             current_time = process_list[i].arrive_time
-            
+    
+    remove_consecutive(schedule)
     return schedule, waiting_time/float(len(process_list))
 
 def read_input():
