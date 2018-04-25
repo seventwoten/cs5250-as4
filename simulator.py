@@ -201,7 +201,7 @@ def SJF_scheduling(process_list, alpha):
             waiting_time += current_time - process.arrive_time - process.burst_time
             
             # update estimate of predicted_burst
-            predicted_burst[process.id] = alpha * predicted_burst[process.id] + (1-alpha) * process.burst_time
+            predicted_burst[process.id] = (1-alpha) * predicted_burst[process.id] + alpha * process.burst_time
             
         else: 
             # fastforward to next process
